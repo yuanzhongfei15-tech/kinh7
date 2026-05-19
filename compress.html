@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片压缩 - 专业工具合集</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-tools"></i>
+                <span>工具合集</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="qrcode.html" class="nav-link">二维码</a>
+                <a href="compress.html" class="nav-link active">图片压缩</a>
+                <a href="convert.html" class="nav-link">格式转换</a>
+                <a href="format.html" class="nav-link">代码格式化</a>
+                <a href="convertor.html" class="nav-link">数据换算</a>
+                <a href="color.html" class="nav-link">配色工具</a>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="tool-page">
+            <div class="container">
+                <div class="tool-header">
+                    <h1><i class="fas fa-compress-arrows-alt"></i> 图片无损压缩</h1>
+                    <p>在线压缩图片，保持画质的同时减小文件大小</p>
+                </div>
+
+                <div class="tool-container">
+                    <div class="input-group">
+                        <label for="imageInput">选择图片</label>
+                        <input type="file" id="imageInput" accept="image/*">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <div class="input-group">
+                            <label for="quality">压缩质量</label>
+                            <select id="quality">
+                                <option value="0.9">高质量 (90%)</option>
+                                <option value="0.8" selected>标准质量 (80%)</option>
+                                <option value="0.7">中等质量 (70%)</option>
+                                <option value="0.6">低质量 (60%)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="maxWidth">最大宽度</label>
+                            <select id="maxWidth">
+                                <option value="0">保持原图</option>
+                                <option value="1920">1920px</option>
+                                <option value="1280" selected>1280px</option>
+                                <option value="800">800px</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <button class="btn btn-primary" id="compressBtn">
+                            <i class="fas fa-compress"></i> 压缩图片
+                        </button>
+                        <button class="btn btn-success" id="downloadCompressedBtn" style="display: none;">
+                            <i class="fas fa-download"></i> 下载压缩后的图片
+                        </button>
+                    </div>
+
+                    <div class="compress-preview" id="compressPreview" style="display: none;">
+                        <div class="preview-box">
+                            <h4>原图</h4>
+                            <img id="originalImage" alt="原图">
+                            <p id="originalSize"></p>
+                        </div>
+                        <div class="preview-box">
+                            <h4>压缩后</h4>
+                            <img id="compressedImage" alt="压缩后">
+                            <p id="compressedSize"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 专业工具合集. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        let compressedDataUrl;
+
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('originalImage').src = event.target.result;
+                    document.getElementById('originalSize').textContent = formatSize(file.size);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('compressBtn').addEventListener('click', function() {
+            const file = document.getElementById('imageInput').files[0];
+            if (!file) {
+                alert('请先选择图片');
+                return;
+            }
+
+            const quality = parseFloat(document.getElementById('quality').value);
+            const maxWidth = parseInt(document.getElementById('maxWidth').value);
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (maxWidth > 0 && width > maxWidth) {
+                        height = (maxWidth / width) * height;
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    document.getElementById('compressedImage').src = compressedDataUrl;
+
+                    const base64Length = compressedDataUrl.length - 'data:image/jpeg;base64,'.length;
+                    const fileSize = Math.round(base64Length * 0.75);
+                    document.getElementById('compressedSize').textContent = formatSize(fileSize);
+
+                    document.getElementById('compressPreview').style.display = 'grid';
+                    document.getElementById('downloadCompressedBtn').style.display = 'inline-flex';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('downloadCompressedBtn').addEventListener('click', function() {
+            if (compressedDataUrl) {
+                const link = document.createElement('a');
+                link.download = 'compressed.jpg';
+                link.href = compressedDataUrl;
+                link.click();
+            }
+        });
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据换算 - 专业工具合集</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-tools"></i>
+                <span>工具合集</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="qrcode.html" class="nav-link">二维码</a>
+                <a href="compress.html" class="nav-link">图片压缩</a>
+                <a href="convert.html" class="nav-link">格式转换</a>
+                <a href="format.html" class="nav-link">代码格式化</a>
+                <a href="convertor.html" class="nav-link active">数据换算</a>
+                <a href="color.html" class="nav-link">配色工具</a>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="tool-page">
+            <div class="container">
+                <div class="tool-header">
+                    <h1><i class="fas fa-calculator"></i> 数据换算</h1>
+                    <p>单位转换，包括长度、重量、温度等</p>
+                </div>
+
+                <div class="tool-container">
+                    <div class="input-group">
+                        <label for="category">转换类型</label>
+                        <select id="category">
+                            <option value="length">长度</option>
+                            <option value="weight">重量</option>
+                            <option value="temperature">温度</option>
+                            <option value="area">面积</option>
+                            <option value="data">数据大小</option>
+                        </select>
+                    </div>
+
+                    <div class="convertor-grid">
+                        <div class="input-group">
+                            <label for="fromValue">值</label>
+                            <input type="number" id="fromValue" value="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="fromUnit">从</label>
+                            <select id="fromUnit"></select>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin: 24px 0;">
+                        <i class="fas fa-arrow-down" style="font-size: 24px; color: var(--text-muted);"></i>
+                    </div>
+
+                    <div class="convertor-grid">
+                        <div class="input-group">
+                            <label for="toValue">结果</label>
+                            <input type="number" id="toValue" readonly>
+                        </div>
+                        <div class="input-group">
+                            <label for="toUnit">到</label>
+                            <select id="toUnit"></select>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <button class="btn btn-primary" id="convertorBtn">
+                            <i class="fas fa-exchange-alt"></i> 转换
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 专业工具合集. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        const units = {
+            length: {
+                name: '长度',
+                units: {
+                    m: { name: '米', rate: 1 },
+                    km: { name: '千米', rate: 0.001 },
+                    cm: { name: '厘米', rate: 100 },
+                    mm: { name: '毫米', rate: 1000 },
+                    mi: { name: '英里', rate: 0.000621371 },
+                    yd: { name: '码', rate: 1.09361 },
+                    ft: { name: '英尺', rate: 3.28084 },
+                    in: { name: '英寸', rate: 39.3701 }
+                }
+            },
+            weight: {
+                name: '重量',
+                units: {
+                    kg: { name: '千克', rate: 1 },
+                    g: { name: '克', rate: 1000 },
+                    mg: { name: '毫克', rate: 1000000 },
+                    lb: { name: '磅', rate: 2.20462 },
+                    oz: { name: '盎司', rate: 35.274 }
+                }
+            },
+            temperature: {
+                name: '温度',
+                units: {
+                    c: { name: '摄氏度' },
+                    f: { name: '华氏度' },
+                    k: { name: '开尔文' }
+                },
+                special: true
+            },
+            area: {
+                name: '面积',
+                units: {
+                    m2: { name: '平方米', rate: 1 },
+                    km2: { name: '平方千米', rate: 0.000001 },
+                    ha: { name: '公顷', rate: 0.0001 },
+                    ac: { name: '英亩', rate: 0.000247105 },
+                    ft2: { name: '平方英尺', rate: 10.7639 }
+                }
+            },
+            data: {
+                name: '数据大小',
+                units: {
+                    b: { name: '字节', rate: 1 },
+                    kb: { name: 'KB', rate: 1 / 1024 },
+                    mb: { name: 'MB', rate: 1 / (1024 * 1024) },
+                    gb: { name: 'GB', rate: 1 / (1024 * 1024 * 1024) },
+                    tb: { name: 'TB', rate: 1 / (1024 * 1024 * 1024 * 1024) }
+                }
+            }
+        };
+
+        function updateUnits() {
+            const category = document.getElementById('category').value;
+            const categoryUnits = units[category].units;
+            
+            const fromSelect = document.getElementById('fromUnit');
+            const toSelect = document.getElementById('toUnit');
+            fromSelect.innerHTML = '';
+            toSelect.innerHTML = '';
+            
+            let firstKey = null;
+            let secondKey = null;
+            
+            for (const key in categoryUnits) {
+                if (!firstKey) firstKey = key;
+                else if (!secondKey) secondKey = key;
+                
+                const option1 = document.createElement('option');
+                option1.value = key;
+                option1.textContent = categoryUnits[key].name;
+                fromSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = key;
+                option2.textContent = categoryUnits[key].name;
+                toSelect.appendChild(option2);
+            }
+            
+            if (secondKey) {
+                toSelect.value = secondKey;
+            }
+        }
+
+        function convert() {
+            const category = document.getElementById('category').value;
+            const fromValue = parseFloat(document.getElementById('fromValue').value);
+            const fromUnit = document.getElementById('fromUnit').value;
+            const toUnit = document.getElementById('toUnit').value;
+            
+            if (isNaN(fromValue)) {
+                alert('请输入有效的数值');
+                return;
+            }
+            
+            let result;
+            
+            if (category === 'temperature') {
+                if (fromUnit === 'c' && toUnit === 'f') {
+                    result = (fromValue * 9/5) + 32;
+                } else if (fromUnit === 'c' && toUnit === 'k') {
+                    result = fromValue + 273.15;
+                } else if (fromUnit === 'f' && toUnit === 'c') {
+                    result = (fromValue - 32) * 5/9;
+                } else if (fromUnit === 'f' && toUnit === 'k') {
+                    result = (fromValue - 32) * 5/9 + 273.15;
+                } else if (fromUnit === 'k' && toUnit === 'c') {
+                    result = fromValue - 273.15;
+                } else if (fromUnit === 'k' && toUnit === 'f') {
+                    result = (fromValue - 273.15) * 9/5 + 32;
+                } else {
+                    result = fromValue;
+                }
+            } else {
+                const categoryUnits = units[category].units;
+                const inBase = fromValue / categoryUnits[fromUnit].rate;
+                result = inBase * categoryUnits[toUnit].rate;
+            }
+            
+            document.getElementById('toValue').value = result.toFixed(6);
+        }
+
+        document.getElementById('category').addEventListener('change', updateUnits);
+        document.getElementById('convertorBtn').addEventListener('click', convert);
+
+        updateUnits();
+    </script>
+</body>
+</html>

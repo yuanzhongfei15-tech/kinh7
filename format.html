@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代码格式化 - 专业工具合集</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-tools"></i>
+                <span>工具合集</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="qrcode.html" class="nav-link">二维码</a>
+                <a href="compress.html" class="nav-link">图片压缩</a>
+                <a href="convert.html" class="nav-link">格式转换</a>
+                <a href="format.html" class="nav-link active">代码格式化</a>
+                <a href="convertor.html" class="nav-link">数据换算</a>
+                <a href="color.html" class="nav-link">配色工具</a>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="tool-page">
+            <div class="container">
+                <div class="tool-header">
+                    <h1><i class="fas fa-code"></i> 代码格式化</h1>
+                    <p>美化代码，支持多种编程语言</p>
+                </div>
+
+                <div class="tool-container">
+                    <div class="input-group">
+                        <label for="language">语言</label>
+                        <select id="language">
+                            <option value="json">JSON</option>
+                            <option value="xml">XML</option>
+                            <option value="html">HTML</option>
+                            <option value="css">CSS</option>
+                        </select>
+                    </div>
+
+                    <div class="code-editor">
+                        <div class="code-area">
+                            <h4 style="margin-bottom: 12px;">输入代码</h4>
+                            <textarea id="codeInput" placeholder='{"name": "test", "value": 123}'></textarea>
+                        </div>
+                        <div class="code-output">
+                            <h4 style="margin-bottom: 12px;">格式化结果</h4>
+                            <pre id="codeOutput"></pre>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; display: flex; gap: 12px;">
+                        <button class="btn btn-primary" id="formatBtn">
+                            <i class="fas fa-magic"></i> 格式化
+                        </button>
+                        <button class="btn btn-secondary" id="copyBtn">
+                            <i class="fas fa-copy"></i> 复制
+                        </button>
+                        <button class="btn btn-secondary" id="clearBtn">
+                            <i class="fas fa-trash"></i> 清空
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 专业工具合集. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        document.getElementById('formatBtn').addEventListener('click', function() {
+            const language = document.getElementById('language').value;
+            const input = document.getElementById('codeInput').value;
+
+            if (!input.trim()) {
+                alert('请输入代码');
+                return;
+            }
+
+            try {
+                let output;
+                switch (language) {
+                    case 'json':
+                        output = JSON.stringify(JSON.parse(input), null, 2);
+                        break;
+                    case 'xml':
+                        output = formatXML(input);
+                        break;
+                    case 'html':
+                        output = formatHTML(input);
+                        break;
+                    case 'css':
+                        output = formatCSS(input);
+                        break;
+                    default:
+                        output = input;
+                }
+                document.getElementById('codeOutput').textContent = output;
+            } catch (e) {
+                alert('格式化失败: ' + e.message);
+            }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            const output = document.getElementById('codeOutput').textContent;
+            if (output) {
+                navigator.clipboard.writeText(output);
+                alert('已复制到剪贴板');
+            }
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            document.getElementById('codeInput').value = '';
+            document.getElementById('codeOutput').textContent = '';
+        });
+
+        function formatXML(xml) {
+            let formatted = '';
+            let indent = 0;
+            const lines = xml.replace(/>\s*</g, '>\n<').split('\n');
+            lines.forEach(line => {
+                if (line.match(/^<\/\w/)) indent--;
+                formatted += '  '.repeat(indent) + line.trim() + '\n';
+                if (line.match(/^<\w[^>]*[^\/]>$/) && !line.match(/^<?xml/)) indent++;
+            });
+            return formatted.trim();
+        }
+
+        function formatHTML(html) {
+            let formatted = '';
+            let indent = 0;
+            const selfClosing = ['br', 'hr', 'img', 'input', 'meta', 'link'];
+            const lines = html.replace(/>\s*</g, '>\n<').split('\n');
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return;
+                const tagMatch = trimmed.match(/^<(\/?)(\w+)/);
+                if (tagMatch && tagMatch[1] === '/') indent--;
+                formatted += '  '.repeat(indent) + trimmed + '\n';
+                if (tagMatch && !tagMatch[1] && !selfClosing.includes(tagMatch[2]) && !trimmed.endsWith('/>')) indent++;
+            });
+            return formatted.trim();
+        }
+
+        function formatCSS(css) {
+            let formatted = '';
+            let indent = 0;
+            const lines = css.replace(/\{/g, ' {\n').replace(/\}/g, '\n}\n').replace(/;/g, ';\n').split('\n');
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return;
+                if (trimmed === '}') indent--;
+                formatted += '  '.repeat(indent) + trimmed + '\n';
+                if (trimmed.endsWith('{')) indent++;
+            });
+            return formatted.trim();
+        }
+    </script>
+</body>
+</html>

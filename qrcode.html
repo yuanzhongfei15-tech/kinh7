@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二维码生成器 - 专业工具合集</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-tools"></i>
+                <span>工具合集</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="qrcode.html" class="nav-link active">二维码</a>
+                <a href="compress.html" class="nav-link">图片压缩</a>
+                <a href="convert.html" class="nav-link">格式转换</a>
+                <a href="format.html" class="nav-link">代码格式化</a>
+                <a href="convertor.html" class="nav-link">数据换算</a>
+                <a href="color.html" class="nav-link">配色工具</a>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="tool-page">
+            <div class="container">
+                <div class="tool-header">
+                    <h1><i class="fas fa-qrcode"></i> 二维码生成器</h1>
+                    <p>快速生成个性化二维码，支持多种定制选项</p>
+                </div>
+
+                <div class="tool-container">
+                    <div class="input-group">
+                        <label for="qrcodeText">输入内容</label>
+                        <input type="text" id="qrcodeText" placeholder="输入网址、文本或其他内容...">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <div class="input-group">
+                            <label for="qrcodeSize">尺寸</label>
+                            <select id="qrcodeSize">
+                                <option value="128">128 x 128</option>
+                                <option value="200">200 x 200</option>
+                                <option value="256" selected>256 x 256</option>
+                                <option value="300">300 x 300</option>
+                                <option value="400">400 x 400</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="qrcodeColor">颜色</label>
+                            <input type="color" id="qrcodeColor" value="#000000" style="height: 46px; padding: 4px;">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <button class="btn btn-primary" id="generateBtn">
+                            <i class="fas fa-magic"></i> 生成二维码
+                        </button>
+                        <button class="btn btn-secondary" id="downloadBtn" style="display: none;">
+                            <i class="fas fa-download"></i> 下载图片
+                        </button>
+                    </div>
+
+                    <div class="qrcode-preview" id="qrcodePreview" style="display: none;">
+                        <div id="qrcode"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 专业工具合集. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        let qrcode;
+
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            const text = document.getElementById('qrcodeText').value;
+            const size = parseInt(document.getElementById('qrcodeSize').value);
+            const color = document.getElementById('qrcodeColor').value;
+
+            if (!text) {
+                alert('请输入内容');
+                return;
+            }
+
+            const qrcodeDiv = document.getElementById('qrcode');
+            qrcodeDiv.innerHTML = '';
+
+            qrcode = new QRCode(qrcodeDiv, {
+                text: text,
+                width: size,
+                height: size,
+                colorDark: color,
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('qrcodePreview').style.display = 'flex';
+            document.getElementById('downloadBtn').style.display = 'inline-flex';
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            const canvas = document.querySelector('#qrcode canvas');
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = 'qrcode.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+        });
+    </script>
+</body>
+</html>
